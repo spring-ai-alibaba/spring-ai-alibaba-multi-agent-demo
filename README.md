@@ -1,6 +1,14 @@
 # spring-ai-alibaba-multi-agent-demo
 Cloud-Side Beverage Shop Smart Order Assistant - A distributed multi-agent system built using Spring AI Alibaba Agentic API
 
+## 项目简介
+
+
+
+
+
+
+
 ## 环境要求
 
 在开始之前，请确保您的系统已安装以下软件：
@@ -163,3 +171,24 @@ docker-compose logs -f redis
 - `*-mcp-server/`: MCP服务器
 - `frontend/`: 前端界面
 - `docker/middleware/`: 中间件服务（MySQL、Nacos、Redis）
+
+## 其他说明
+
+**请注意：** 当前Demo版本默认**没有集成**以下组件，需要用户根据实际需求手动部署：
+
+#### Higress 网关
+- **当前状态**: Demo中未包含Higress网关配置
+- **如需集成**: 用户需要自行部署Higress网关，并通过简单的配置修改将服务路由到网关
+- **集成步骤**: 
+  1. 部署Higress网关服务, 并在网关配置LLM路由或MCP Server
+  2. 将LLM地址替换为Higress路由: 将Agent使用的ChatModel由dashscopeChatModel替换为openAiChatModel, 同时在application.yml中spring.ai.openai.base-url设置网关地址
+  3. 将order-service mcp地址改为Higress代理的mcp server: 在application.yml中注释spring.ai.alibaba.mcp.nacos.client.sse.connections中order-mcp-server相关内容, 同时取消spring.ai.mcp.client.sse.connections中order-service相关注释, 并正确配置网关Mcp Server地址
+
+#### Spring AI Alibaba Admin
+- **当前状态**: Demo中未包含Spring AI Alibaba Admin管理控制台
+- **如需集成**: 用户需要单独部署Admin控制台，用于监控和管理AI智能体
+- **集成步骤**:
+  1. 部署Spring AI Alibaba Admin服务, 参考[Spring AI Alibaba Admin](https://github.com/spring-ai-alibaba/spring-ai-alibaba-admin/blob/main/README-zh.md)
+  2. 智能体服务接入Admin, 参考参考[Spring AI Alibaba Admin](https://github.com/spring-ai-alibaba/spring-ai-alibaba-admin/blob/main/README-zh.md)
+  3. 通过Admin控制台进行智能体的监控、配置和管理
+
