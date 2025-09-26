@@ -1,0 +1,116 @@
+server:
+  port: 10006
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: order-sub-agent
+  ai:
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:-}
+      chat:
+        options:
+          model: ${DASHSCOPE_MODEL:qwen-plus}
+    openai:
+      api-key: ${AI_OPENAI_API_KEY:-}
+      base-url: ${AI_OPENAI_BASE_URL:-}
+      chat:
+        options:
+          model: qwen-max
+    alibaba:
+      mcp:
+        nacos:
+          namespace: ${NACOS_NAMESPACE:public}
+          server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+          username: ${NACOS_USERNAME:nacos}
+          password: ${NACOS_PASSWORD:nacos}
+          client:
+            enabled: ${NACOS_CLIENT_ENABLED:true}
+            sse:
+              connections:
+                order-mcp-server:
+                  service-name: order-mcp-server
+                  version: 0.0.1
+                memory-mcp-server:
+                  service-name: memory-mcp-server
+                  version: 0.0.1
+      a2a:
+        nacos:
+          server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+          username: ${NACOS_USERNAME:nacos}
+          password: ${NACOS_PASSWORD:nacos}
+          discovery:
+            enabled: false
+        server:
+          version: 1.0.1
+          card:
+            name: order_agent
+            description: 云边奶茶铺智能订单处理助手
+            provider:
+              name: 云边奶茶铺
+              organization: 云边奶茶铺
+              url: https://yunbian-tea.com
+              contact:
+                email: support@yunbian-tea.com
+                phone: 400-123-4567
+
+    mcp:
+      client:
+        toolcallback:
+          enabled: true
+        type: sync
+        #sse:
+        #  connections:
+        #    order-service:
+        #      url: ${ORDER_MCP_SERVER_ADDR:http://120.26.201.147/mcp-servers/order-services}
+
+# Agent提示词配置
+agent:
+  prompts:
+    order-agent-instruction: |
+      角色与职责:
+      你是云边奶茶铺的智能订单处理助手，负责菜单/商品解析、个性化偏好应用、库存与价格校验、订单草案与下单流程。
+      不处理投诉裁决与补偿、不做产品文化/知识性咨询解答。
+      
+      核心能力:
+      1. 智能记忆应用：在用户下单前，主动查询用户历史偏好和习惯，提供个性化推荐
+      2. "老样子"下单：识别用户常用产品组合，当用户说"老样子"时自动推荐历史订单
+      3. 行为记录：记录用户下单行为，包括产品选择、时间模式、偏好变化等
+      4. 习惯预测：基于历史订单预测用户可能的选择，提前准备推荐
+      
+      用户输入信息通常包括:
+      用户下单意图与规格（规格、甜度、冰量、杯数、多人拆单等）、用户偏好记忆、必要的商品与库存信息。
+      
+      工作流程:
+      1. 接收用户下单请求时，首先使用memory-search工具查询用户历史偏好和订单习惯
+      2. 基于用户记忆和当前请求，提供个性化推荐和智能建议
+      3. 处理用户下单，使用相应的订单工具创建订单
+      4. 订单完成后，使用memory-store工具记录用户行为，包括：
+         - 产品偏好（喜欢的产品、甜度、冰量）
+         - 下单习惯和行为（时间、频率、数量）
+         - 消费模式（价格敏感度、促销响应）
+      
+      智能推荐策略:
+      - 如果用户说"老样子"或"和上次一样"，查询最近订单并推荐相同产品
+      - 如果用户没有指定甜度/冰量，基于历史偏好自动填充
+      - 如果用户经常在特定时间下单，可以主动推荐
+      - 基于用户禁忌和偏好，避免推荐不合适的产品
+      
+      约束:
+      仅对下单相关问题给出操作与结果；遇到投诉或知识问答，明确拒绝并提示由相应 Agent 处理。
+      
+      注意:
+      如果用户想要下单,必须要用户提供userId,只有用户Id存在时才允许下单。
+      如果用户想要查询订单,必须要用户提供userId或者订单号,只能根据具体的用户Id或者订单号去查询相应的订单,绝对不允许查询或操作其他用户订单。
+      如果用户想要修改或删除订单,必须要和用户确认用户ID和订单号,确保用户ID和订单号匹配且唯一后才允许修改或删除订单，一次只允许修改一个订单。
+      
+      记忆使用原则:
+      - 每次处理用户请求前，先查询用户记忆
+      - 记录用户行为时，要准确描述用户偏好和习惯
+      - 保护用户隐私，只记录必要的偏好信息
+      - 记忆记录事件无需通过本文透出给消费者, 不需要让用户感知到我们在进行个性化记忆内容要简洁明了，便于后续检索
+      

@@ -39,3 +39,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Docker Middleware Data ###
+docker/middleware/mysql/
+docker/middleware/nacos/
+docker/middleware/redis/

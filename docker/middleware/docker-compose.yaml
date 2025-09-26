@@ -1,0 +1,124 @@
+services:
+  mysql:
+    container_name: cloud-mysql
+    restart: always
+    image: docker.1ms.run/mysql:8.0.35
+    user: "${UID}:${GID}"
+    env_file:
+      - .env
+      - mysql.env
+    volumes:
+      - ${MIDDLEWARE_HOME:-.}/mysql/data:/var/lib/mysql
+      - ${MIDDLEWARE_HOME:-.}/mysql/log:/var/log
+      - ${MIDDLEWARE_HOME:-.}/conf/mysql:/etc/mysql/conf.d
+      - ${MIDDLEWARE_HOME:-.}/init/mysql:/docker-entrypoint-initdb.d/
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    networks:
+      - default
+
+  nacos:
+    container_name: cloud-nacos
+    restart: always
+    image: nacos-registry.cn-hangzhou.cr.aliyuncs.com/nacos/nacos-server:v3.1.0
+    env_file:
+      - .env
+      - nacos.env
+    volumes:
+      - ${MIDDLEWARE_HOME:-.}/nacos/data:/home/nacos/data
+      - ${MIDDLEWARE_HOME:-.}/nacos/logs:/home/nacos/logs
+    ports:
+      - "8848:8848"   # Nacos控制台端口
+      - "9848:9848"   # Nacos客户端gRPC请求服务端端口
+      - "8080:8080"   # Nacos HTTP API端口
+    networks:
+      - default
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  redis:
+    container_name: cloud-redis
+    restart: always
+    image: docker.1ms.run/redis:7.2-alpine
+    user: "${UID}:${GID}"
+    env_file:
+      - .env
+      - redis.env
+    volumes:
+      - ${MIDDLEWARE_HOME:-.}/redis/data:/data
+      - ${MIDDLEWARE_HOME:-.}/conf/redis:/usr/local/etc/redis
+    ports:
+      - "6379:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis123}", "--raw", "incr", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - default
+
+#
+#  consult-mcp-server:
+#    container_name: consult-mcp-server
+#    build:
+#      context: ../../consult-mcp-server
+#      dockerfile: Dockerfile
+#    ports:
+#      - "10003:10003"
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/multi-agent-demo?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+#      - SPRING_DATASOURCE_USERNAME=multi-agent-demo
+#      - SPRING_DATASOURCE_PASSWORD=multi-agent-demo
+#    depends_on:
+#      mysql:
+#        condition: service_healthy
+#    restart: unless-stopped
+#    networks:
+#      - default
+#
+#  order-mcp-server:
+#    container_name: order-mcp-server
+#    build:
+#      context: ../../order-mcp-server
+#      dockerfile: Dockerfile
+#    ports:
+#      - "10002:10002"
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/multi-agent-demo?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+#      - SPRING_DATASOURCE_USERNAME=multi-agent-demo
+#      - SPRING_DATASOURCE_PASSWORD=multi-agent-demo
+#    depends_on:
+#      mysql:
+#        condition: service_healthy
+#    restart: unless-stopped
+#    networks:
+#      - default
+#
+#  multi-agent:
+#    container_name: multi-agent
+#    build:
+#      context: ../../multi-agent
+#      dockerfile: Dockerfile
+#    ports:
+#      - "10001:10001"
+#    environment:
+#      - SPRING_AI_MCP_CLIENT_SSE_CONNECTIONS_CONSULT_MCP_SERVER_URL=http://consult-mcp-server:10003/
+#      - SPRING_AI_MCP_CLIENT_SSE_CONNECTIONS_ORDER_MCP_SERVER_URL=http://order-mcp-server:10002/
+#    depends_on:
+#      mysql:
+#        condition: service_started
+#      consult-mcp-server:
+#        condition: service_started
+#      order-mcp-server:
+#        condition: service_started
+#    restart: unless-stopped
+#    networks:
+#      - default
+#

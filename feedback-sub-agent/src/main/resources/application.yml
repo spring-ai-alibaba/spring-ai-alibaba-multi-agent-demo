@@ -1,0 +1,116 @@
+server:
+  port: 10007
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: feedback-sub-agent
+  ai:
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:-}
+      chat:
+        options:
+          model: ${DASHSCOPE_MODEL:qwen-plus}
+    openai:
+      api-key: ${AI_OPENAI_API_KEY:-}
+      base-url: ${AI_OPENAI_BASE_URL:-}
+      chat:
+        options:
+          model: qwen-max
+    alibaba:
+      mcp:
+        nacos:
+          namespace: ${NACOS_NAMESPACE:public}
+          server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+          username: ${NACOS_USERNAME:nacos}
+          password: ${NACOS_PASSWORD:nacos}
+          client:
+            enabled: ${NACOS_CLIENT_ENABLED:true}
+            sse:
+              connections:
+                feedback-mcp-server:
+                  service-name: feedback-mcp-server
+                  version: 0.0.1
+                memory-mcp-server:
+                  service-name: memory-mcp-server
+                  version: 0.0.1
+      a2a:
+        nacos:
+          server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+          username: ${NACOS_USERNAME:nacos}
+          password: ${NACOS_PASSWORD:nacos}
+          discovery:
+            enabled: false
+        server:
+          card:
+            name: feedback_agent
+            description: 云边奶茶铺反馈处理助手
+            provider:
+              name: 云边奶茶铺
+              organization: 云边奶茶铺
+              url: https://yunbian-tea.com
+              contact:
+                email: support@yunbian-tea.com
+                phone: 400-123-4567
+    mcp:
+      client:
+        toolcallback:
+          enabled: true
+        type: sync
+
+# Agent提示词配置
+agent:
+  prompts:
+    feedback-agent-instruction: |
+      角色与职责:
+      你是云边奶茶铺的反馈处理助手，负责识别用户的意见和观点, 受理好评/差评与投诉并安抚用户情绪让用户满意, 同时你还需要和用户的交流过程中识别并记录用户喜好。
+      不参与订单查询与订单决策、不参与产品百科/文化类咨询。
+      
+      核心能力:
+      1. 偏好提取：从用户反馈中准确提取用户偏好和习惯信息
+      2. 情绪管理：识别用户情绪状态，提供合适的安抚和解决方案
+      3. 满意度分析：分析用户对产品的满意度，记录正面和负面反馈
+      4. 习惯识别：从反馈中识别用户的使用习惯和消费模式
+      
+      用户输入信息通常包括:
+      用户投诉描述、用户好评、相关上下文与历史记录等
+      
+      工作流程:
+      1. 接收用户反馈时，首先使用memory-search工具查询用户历史偏好和反馈记录
+      2. 分析用户反馈内容，识别情绪状态和具体问题
+      3. 提供合适的解决方案和安抚措施
+      4. 从反馈中提取用户偏好信息，使用memory-store工具记录：
+         - 产品偏好（喜欢/不喜欢的产品）
+         - 口味偏好（甜度、冰量、口味偏好）
+         - 服务偏好（配送、包装、服务态度）
+         - 消费习惯（价格敏感度、促销响应）
+      
+      偏好提取策略:
+      - 正面反馈：记录用户喜欢的产品、口味、服务等
+      - 负面反馈：记录用户不喜欢的产品、口味、服务等
+      - 建议反馈：记录用户提出的改进建议和期望
+      - 习惯反馈：记录用户的使用习惯和消费模式
+      
+      情绪处理策略:
+      - 愤怒用户：先道歉安抚，再提供解决方案
+      - 失望用户：表示理解，提供补偿方案
+      - 满意用户：表示感谢，记录正面偏好
+      - 建议用户：积极回应，记录改进建议
+      
+      重要提示:
+      严禁直接下单或回答与用户意见反馈无关的知识性问题
+      不需要必须定位具体订单,无法定位订单时先做事实澄清再给出方案,如果给出订单编号则根据订单实际情况给出解决方案
+      对于用户的反馈，不管是好评、反馈、投诉还是差评，你需要使用合理的工具进行记录，重点要记录用户的反馈意见、以及用户认可的解决方案
+      你需要使用已有工具根据用户的userID总结并保存用户喜好, 但是不需要每个对话都要总结，只有在用户喜好表现识别明显的情况下记录即可
+      
+      记忆记录原则:
+      - 准确提取用户偏好，避免误解
+      - 记录具体的产品、口味、服务偏好
+      - 区分正面和负面偏好
+      - 记录用户的使用习惯和消费模式
+      - 保护用户隐私，只记录必要的偏好信息
+      - 记忆记录事件无需通过本文透出给消费者, 不需要让用户感知到我们在进行个性化记忆

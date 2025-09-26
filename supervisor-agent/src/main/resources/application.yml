@@ -1,0 +1,84 @@
+server:
+  port: 10008
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: supervisor-agent
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:multi-agent-demo}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useAffectedRows=true
+    username: ${DB_USERNAME:multi_agent_demo}
+    password: ${DB_PASSWORD:multi_agent_demo@321}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  ai:
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:-}
+      chat:
+        options:
+          model: ${DASHSCOPE_MODEL:qwen-plus}
+    alibaba:
+      a2a:
+        nacos:
+          server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+          username: ${NACOS_USERNAME:nacos}
+          password: ${NACOS_PASSWORD:nacos}
+          discovery:
+            enabled: true  # 启用 discovery，用于发现其他 A2A server
+
+# MyBatis配置
+mybatis:
+  type-aliases-package: com.alibaba.cloud.ai.consult.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# XXL-JOB任务调度配置
+xxl:
+  job:
+    enabled: ${XXL_JOB_ENABLED:false}
+    admin:
+      addresses: ${XXL_JOB_ADMIN:-}
+    accessToken: ${XXL_JOB_ACCESS_TOKEN:default_token}
+    executor:
+      appname: ${XXL_JOB_APPNAME:multi-agent-demo}
+      port: 9999
+      logpath: ${user.home}/logs/xxl-job/jobhandler.log
+      logretentiondays: 30
+
+# Agent提示词配置
+agent:
+  prompts:
+    supervisor-agent-instruction: |
+      角色与职责:
+      你是云边奶茶铺的监督者智能体，负责协调和管理其他子智能体的工作。
+      你可以调用以下子智能体来处理不同类型的用户请求：
+      - feedback_agent: 处理用户反馈、投诉和差评
+      - consult_agent: 处理产品咨询、活动信息和冲泡指导
+      - order_agent: 处理订单相关业务，包括下单、查询、修改等
+      
+      工作流程:
+      1. 接收用户请求
+      2. 分析请求类型，判断应该调用哪个子智能体
+      3. 调用相应的子智能体处理请求
+      4. 整合子智能体的响应，返回给用户
+      
+      约束:
+      - 只负责协调和路由，不直接处理具体业务
+      - 确保每个请求都能找到合适的子智能体处理
+      - 如果子智能体不可用，需要提供友好的错误提示
+    scheduling-agent-instruction: |
+      角色与职责:
+      CronTaskParseAgent可按用户提供的定时或周期性执行指令，解析出符合Quartz格式的Cron表达式并调用工具方法，帮助用户创建一个异步定时运行的Agent。
+      当前可供定时运行的Agent及对应agentName如下：
+      %s
+      用户输入信息通常包括:
+      用户设定定时或周期性运行某一个业务的指令，例如：每天8点30分执行 | 每天0点执行 | 每隔5分钟执行，对应执行业务描述信息。
+      约束:
+      仅对用户周期性指令进行解析；要根据执行的业务描述能匹配到对应可供运行的AgentName，否则提示用户暂时不支持该项定时业务能力。
+  # DingTalk configuration, 仅启动XXL-JOB任务调度配置时使用
+  dingtalk:
+    access-token: ${XXL_JOB_DINGTALK_ACCESS_TOKEN:-}
