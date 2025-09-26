@@ -2,14 +2,29 @@
 Cloud-Side Beverage Shop Smart Order Assistant - A distributed multi-agent system built using Spring AI Alibaba Agentic API
 
 ## 项目简介
+### 功能介绍
+云边奶茶铺智能助手Demo, 支持一站式咨询、点单与反馈，持续根据用户行为和喜好推荐并下单产品, 从而实现"越来越懂我", "越用越好用"的用户体验。
 
+Demo的用户端能力主要包括:
+1. 产品咨询与产品推荐。根据用户习惯和喜好, 为用户推荐奶茶产品并介绍, 同时分析并记录用户习惯和喜好。
+2. 点单与订单查询。根据用户需求下订单、修改订单和查询订单, 同时分析并记录用户习惯和喜好。
+3. 反馈与投诉处理。处理用户反馈, 对于投诉或差评安抚情绪并出解决方案, 同时分析并记录用户习惯和喜好。
 
+Demo的管理端能力主要包括: 定时分析用户消费和反馈数据, 并总结生成报告, 用于指导后续产品运营。
 
+### 服务架构
+![服务架构](https://img.alicdn.com/imgextra/i4/O1CN01vctYqQ22cB0D4BDlF_!!6000000007140-2-tps-5298-1406.png)
 
+### 项目结构
+- `frontend/`: 前端界面
+- `supervisor-agent/`: 监督者智能体
+- `consult-sub-agent/`: 咨询子智能体
+- `feedback-sub-agent/`: 反馈子智能体
+- `order-sub-agent/`: 订单子智能体
+- `*-mcp-server/`: MCP服务器
+- `docker/middleware/`: 中间件服务（MySQL、Nacos、Redis）
 
-
-
-## 环境要求
+### 环境要求
 
 在开始之前，请确保您的系统已安装以下软件：
 
@@ -161,16 +176,6 @@ docker-compose logs -f nacos
 docker-compose logs -f mysql
 docker-compose logs -f redis
 ```
-
-## 项目结构
-
-- `consult-sub-agent/`: 咨询子智能体
-- `feedback-sub-agent/`: 反馈子智能体  
-- `order-sub-agent/`: 订单子智能体
-- `supervisor-agent/`: 监督者智能体
-- `*-mcp-server/`: MCP服务器
-- `frontend/`: 前端界面
-- `docker/middleware/`: 中间件服务（MySQL、Nacos、Redis）
 
 ## 其他说明
 
