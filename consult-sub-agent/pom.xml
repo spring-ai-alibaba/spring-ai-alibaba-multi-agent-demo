@@ -176,8 +176,9 @@
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-autoconfigure-arms-observation</artifactId>
-            <version>1.0.0.4-SNAPSHOT</version>
+            <version>${spring-ai-alibaba.version}</version>
         </dependency>
+
 
     </dependencies>
 

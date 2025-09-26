@@ -47,7 +47,7 @@ Cloud-Side Beverage Shop Smart Order Assistant - A distributed multi-agent syste
 cd docker/middleware
 
 # 启动基础服务
-docker-compose up -d mysql nacos redis
+docker-compose up -d
 
 # 等待服务启动完成（约30-60秒）
 # 可以通过以下命令查看服务状态
@@ -58,27 +58,24 @@ docker-compose ps
 
 在启动应用服务之前，必须先初始化Nacos控制台账号密码。
 - 打开浏览器访问: http://localhost:8848/nacos
-- 初始化Nacos账号和密码均为:nacos
+- 初始化Nacos账号和密码, 用户名: `nacos`, 密码: `nacos`
 
 ### 步骤 5: 启动应用服务
 
 完成Nacos初始化后，返回项目根目录启动应用服务：
 
 ```bash
-# 返回项目根目录
-cd ../..
-
-# 启动所有应用服务
+# 启动所有应用服务, 包括mcp server、agent和前端页面
 ./build.sh
 ```
 
 ## 停止服务
 
 ```bash
-# 停止应用服务
+# 停止所有应用服务, 包括mcp server、agent和前端页面
 ./stop.sh
 
-# 停止基础服务（可选）
+# 停止基础存储和中间件依赖（可选）
 cd docker/middleware
 docker-compose down
 ```
@@ -133,7 +130,7 @@ docker-compose down
 4. **前端无法访问**
    - 确保Node.js版本为20+
    - 检查端口3000是否被占用
-   - 重新构建前端: `cd frontend && npm run build`
+   - 重新构建前端: `cd frontend && npm run dev`
 
 5. **数据库连接失败**
    - 确保MySQL服务已启动

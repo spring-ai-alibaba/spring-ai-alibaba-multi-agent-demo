@@ -29,6 +29,9 @@
 
     <!-- Spring Boot -->
     <spring-boot.version>3.2.0</spring-boot.version>
+    
+    <!-- Jackson版本 -->
+    <jackson.version>2.18.4</jackson.version>
 
     <!-- maven plugin -->
     <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
@@ -58,6 +61,22 @@
         <version>${spring-ai-alibaba.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
       </dependency>
 
     </dependencies>

@@ -297,8 +297,7 @@ start_java_service() {
 main() {
     log_info "开始启动云边奶茶铺多智能体系统..."
     
-    # 设置环境变量
-    setup_environment
+    # 环境变量已在步骤2中检查和加载
     
     # 检查必要的命令
     check_command "mvn"
@@ -310,8 +309,75 @@ main() {
     # 创建日志目录
     mkdir -p logs
     
-    # 1. 检查基础服务（MySQL + Nacos + Redis）
-    log_info "=== 步骤 1: 检查基础服务（MySQL + Nacos + Redis） ==="
+    # 1. 检查知识库上传
+    log_info "=== 步骤 1: 检查知识库上传 ==="
+    log_info "在启动应用服务之前，需要将咨询子智能体的知识库文件上传到阿里云百炼知识库。"
+    log_info ""
+    log_info "知识库文件位于 consult-sub-agent/src/main/resources/kownledge/ 目录："
+    log_info "  - brand-overview.md: 品牌概览和理念"
+    log_info "  - products.md: 产品详细介绍"
+    log_info ""
+    log_warning "请访问阿里云百炼控制台创建知识库并上传以上文件，获取知识库ID"
+    log_warning "百炼控制台地址: https://bailian.console.aliyun.com/"
+    echo ""
+    read -p "是否已完成知识库上传并获取了知识库ID？(y/N): " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_info "请先完成知识库上传后再运行此脚本"
+        log_info "详细步骤请参考 README.md 中的说明"
+        exit 0
+    fi
+    
+    # 2. 检查环境变量配置
+    log_info "=== 步骤 2: 检查环境变量配置 ==="
+    
+    # 检查.env文件是否存在
+    if [ ! -f "$ENV_FILE" ]; then
+        log_error ".env 文件不存在！"
+        log_info "请从 env.template 复制并配置环境变量："
+        log_info "  cp env.template .env"
+        log_info "然后编辑 .env 文件填入正确的值"
+        exit 1
+    fi
+    
+    # 加载环境变量进行检查
+    set -a
+    source "$ENV_FILE"
+    set +a
+    
+    # 检查关键环境变量
+    local missing_vars=()
+    if [ -z "$DASHSCOPE_API_KEY" ]; then
+        missing_vars+=("DASHSCOPE_API_KEY")
+    fi
+    if [ -z "$DASHSCOPE_INDEX_ID" ]; then
+        missing_vars+=("DASHSCOPE_INDEX_ID")
+    fi
+    if [ -z "$MEM0_API_KEY" ]; then
+        missing_vars+=("MEM0_API_KEY")
+    fi
+    
+    if [ ${#missing_vars[@]} -gt 0 ]; then
+        log_warning "以下关键环境变量未配置："
+        for var in "${missing_vars[@]}"; do
+            log_warning "  - $var"
+        done
+        echo ""
+        log_info "请编辑 .env 文件并填入正确的值"
+        log_info "可以参考 env.template 文件进行配置"
+        echo ""
+        read -p "是否已配置完成？(y/N): " -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "请先配置环境变量后再运行此脚本"
+            exit 0
+        fi
+    else
+        log_success "环境变量配置检查通过"
+    fi
+    
+    # 3. 检查基础服务（MySQL + Nacos + Redis）
+    log_info "=== 步骤 3: 检查基础服务（MySQL + Nacos + Redis） ==="
     log_info "请确保以下基础服务已启动："
     log_info "  - MySQL (端口: 3306)"
     log_info "  - Nacos (端口: 8848)"
@@ -330,8 +396,8 @@ main() {
         exit 0
     fi
     
-    # 2. 构建和启动MCP服务器
-    log_info "=== 步骤 2: 构建和启动MCP服务器 ==="
+    # 4. 构建和启动MCP服务器
+    log_info "=== 步骤 4: 构建和启动MCP服务器 ==="
     
     # 构建feedback-mcp-server
     build_maven_project "feedback-mcp-server" "feedback-mcp-server"
@@ -345,8 +411,8 @@ main() {
     build_maven_project "memory-mcp-server" "memory-mcp-server"
     start_java_service "memory-mcp-server" "memory-mcp-server-1.0.0.jar" 10010 "memory-mcp-server"
     
-    # 3. 构建和启动子智能体
-    log_info "=== 步骤 3: 构建和启动子智能体 ==="
+    # 5. 构建和启动子智能体
+    log_info "=== 步骤 5: 构建和启动子智能体 ==="
     
     # 构建feedback-sub-agent
     build_maven_project "feedback-sub-agent" "feedback-sub-agent"
@@ -360,18 +426,18 @@ main() {
     build_maven_project "order-sub-agent" "order-sub-agent"
     start_java_service "order-sub-agent" "order-sub-agent-1.0.0.jar" 10006 "order-sub-agent"
     
-    # 4. 构建和启动监督者智能体
-    log_info "=== 步骤 4: 构建和启动监督者智能体 ==="
+    # 6. 构建和启动监督者智能体
+    log_info "=== 步骤 6: 构建和启动监督者智能体 ==="
     
     build_maven_project "supervisor-agent" "supervisor-agent"
     start_java_service "supervisor-agent" "supervisor-agent-1.0.0.jar" 10008 "supervisor-agent"
     
-    # 5. 启动前端服务
-    log_info "=== 步骤 5: 启动前端服务 ==="
+    # 7. 启动前端服务
+    log_info "=== 步骤 7: 启动前端服务 ==="
     
     start_frontend_service "frontend" 3000 "frontend"
     
-    # 6. 显示服务状态
+    # 8. 显示服务状态
     log_info "=== 服务状态 ==="
     echo "基础服务状态请手动检查："
     echo "  - MySQL: localhost:3306"
