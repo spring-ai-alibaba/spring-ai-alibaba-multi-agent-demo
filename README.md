@@ -54,6 +54,8 @@ Demo的管理端能力主要包括: 定时分析用户消费和反馈数据, 并
 - `DASHSCOPE_API_KEY`: DashScope API 密钥（阿里云通义千问API）
 - `DASHSCOPE_INDEX_ID`: DashScope 知识库 ID（百炼知识库ID）
 - `MEM0_API_KEY`: Mem0 API密钥（用于记忆管理）
+- `AI_OPENAI_BASE_URL`: OpenAI协议接口的base url
+- `AI_OPENAI_API_KEY`: OpenAI协议接口的api key
 
 #### 获取API密钥
 - **DashScope API**: 访问 [阿里云DashScope控制台](https://dashscope.console.aliyun.com/) 获取API密钥
@@ -80,7 +82,7 @@ docker-compose ps
 ### 步骤 4: 初始化 Nacos 控制台
 
 在启动应用服务之前，必须先初始化Nacos控制台账号密码。
-- 打开浏览器访问: http://localhost:8848/nacos
+- 打开浏览器访问: http://localhost:8080
 - 初始化Nacos账号和密码, 用户名: `nacos`, 密码: `nacos`
 
 ### 步骤 5: 启动应用服务
